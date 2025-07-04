@@ -23,7 +23,9 @@ class AdCampaignResource extends Resource
     {
         return $form
             ->schema([
-                //
+                Forms\Components\TextInput::make('name')
+                    ->required()
+                    ->maxLength(255),
             ]);
     }
 
@@ -31,7 +33,12 @@ class AdCampaignResource extends Resource
     {
         return $table
             ->columns([
-                //
+                Tables\Columns\TextColumn::make('id')
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('name')
+                    ->searchable(),
             ])
             ->filters([
                 //
@@ -49,7 +56,7 @@ class AdCampaignResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            RelationManagers\AdResourcesRelationManager::class,
         ];
     }
 

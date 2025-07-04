@@ -18,7 +18,13 @@ class AdResourcesRelationManager extends RelationManager
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('resources')
+                Forms\Components\Select::make('type')
+                    ->options([
+                        'facebook' => 'Facebook',
+                        'telegram' => 'Telegram',
+                    ])
+                    ->required(),
+                Forms\Components\TextInput::make('link')
                     ->required()
                     ->maxLength(255),
             ]);
@@ -29,7 +35,8 @@ class AdResourcesRelationManager extends RelationManager
         return $table
             ->recordTitleAttribute('resources')
             ->columns([
-                Tables\Columns\TextColumn::make('resources'),
+                Tables\Columns\TextColumn::make('type'),
+                Tables\Columns\TextColumn::make('link'),
             ])
             ->filters([
                 //
