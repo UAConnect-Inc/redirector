@@ -1,32 +1,40 @@
 <?php
 
-namespace App\Filament\Resources\AdCampaignResource\RelationManagers;
+namespace App\Filament\Resources\RedirectorCampaignResource\RelationManagers;
 
-use Filament\Forms;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
-class AdResourcesRelationManager extends RelationManager
+class RedirectorResourcesRelationManager extends RelationManager
 {
-    protected static string $relationship = 'adResources';
+    protected static string $relationship = 'redirectorResources';
 
     public function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\Select::make('type')
+                Select::make('type')
                     ->options([
                         'facebook' => 'Facebook',
                         'telegram' => 'Telegram',
                     ])
                     ->required(),
-                Forms\Components\TextInput::make('link')
+                TextInput::make('link')
                     ->required()
                     ->maxLength(255),
+                TextInput::make('utm_source'),
+
+                TextInput::make('utm_medium'),
+
+                TextInput::make('utm_campaign'),
+
+                TextInput::make('utm_term'),
+
+                TextInput::make('utm_content'),
             ]);
     }
 

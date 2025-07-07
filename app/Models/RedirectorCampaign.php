@@ -6,16 +6,21 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class AdCampaign extends Model
+class RedirectorCampaign extends Model
 {
     use HasFactory;
 
     protected $fillable = [
         'name',
+        'utm_source',
+        'utm_medium',
+        'utm_campaign',
+        'utm_term',
+        'utm_content',
     ];
 
-    public function adResources(): HasMany
+    public function redirectorResources(): HasMany
     {
-        return $this->hasMany(AdResource::class);
+        return $this->hasMany(RedirectorResource::class);
     }
 }
