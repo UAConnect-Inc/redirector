@@ -23,9 +23,12 @@ class RedirectorResourcesRelationManager extends RelationManager
                         'telegram' => 'Telegram',
                     ])
                     ->required(),
+
                 TextInput::make('link')
                     ->required()
-                    ->maxLength(255),
+                    ->maxLength(255)
+                    ->url(),
+
                 TextInput::make('utm_source'),
 
                 TextInput::make('utm_medium'),
