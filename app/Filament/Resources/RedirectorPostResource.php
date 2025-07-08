@@ -106,7 +106,7 @@ class RedirectorPostResource extends Resource
     public static function getRelations(): array
     {
         return [
-            RedirectorPostResource\RelationManagers\RedirectorPostVariationsRelationManagerRelationManager::class,
+            RedirectorPostResource\RelationManagers\RedirectorPostVariationsRelationManager::class,
         ];
     }
 }

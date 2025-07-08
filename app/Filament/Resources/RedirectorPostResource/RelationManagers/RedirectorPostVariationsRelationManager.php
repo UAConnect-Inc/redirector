@@ -10,7 +10,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
-class RedirectorPostVariationsRelationManagerRelationManager extends RelationManager
+class RedirectorPostVariationsRelationManager extends RelationManager
 {
     protected static string $relationship = 'postVariations';
 
@@ -38,6 +38,12 @@ class RedirectorPostVariationsRelationManagerRelationManager extends RelationMan
                 Tables\Actions\ViewAction::make()
                     ->modalHeading('Variation Details')
                     ->form([
+                        Forms\Components\TextInput::make('redirectorResource.type')
+                            ->label('Type')
+                            ->disabled(),
+                        Forms\Components\TextInput::make('redirectorResource.link')
+                            ->label('Link')
+                            ->disabled(),
                         Forms\Components\Textarea::make('text')
                             ->rows(20)
                             ->disabled(),
