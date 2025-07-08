@@ -13,10 +13,12 @@ class VariationService
         $this->baseUrl = $baseUrl ?: config('app.url');
     }
 
-    public function handel(RedirectorPost $post): RedirectorPost
+    public function handle(RedirectorPost $post): RedirectorPost
     {
         foreach ($post->redirectorCampaign->redirectorResources as $resource) {
-            $variation = RedirectorPostVariation::create([
+            // TODO: Check if the post already has variations for this resource
+            // Maybe need to delete existing variations first.
+            RedirectorPostVariation::create([
                 'text' => $this->replaceLinks($post->text),
                 'redirector_post_id' => $post->id,
                 'redirector_resource_id' => $resource->id,

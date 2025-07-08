@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\RedirectorPostResource\Pages;
 
 use App\Filament\Resources\RedirectorPostResource;
+use App\Models\RedirectorPost;
 use App\Services\Redirector\VariationService;
 use Filament\Actions\Action;
 use Filament\Resources\Pages\ViewRecord;
@@ -28,7 +29,8 @@ class VariationRedirectorPost extends ViewRecord
     {
         // Your custom logic here
         $service = app(VariationService::class);
-        $result = $service->handel($this->record);
+        /** @var RedirectorPost $this->post */
+        $result = $service->handle($this->record);
         Notification::make()
             ->title('Variations generated')
             ->body('Your settings were saved successfully.')

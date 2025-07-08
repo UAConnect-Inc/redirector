@@ -19,7 +19,7 @@ it('creates variations and links', function () {
     ]);
 
     $service = new VariationService('https://myapp.test');
-    $service->handel($post);
+    $service->handle($post);
 
     expect(RedirectorPostVariation::where('redirector_post_id', $post->id)->count())->toBe(2);
 
