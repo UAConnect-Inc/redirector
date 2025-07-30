@@ -12,6 +12,7 @@ class RedirectorPost extends Model
     use HasFactory;
 
     protected $fillable = [
+        'name',
         'text',
         'redirector_campaign_id',
     ];

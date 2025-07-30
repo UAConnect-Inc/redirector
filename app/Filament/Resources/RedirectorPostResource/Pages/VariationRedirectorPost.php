@@ -19,7 +19,7 @@ class VariationRedirectorPost extends ViewRecord
             Action::make('edit')
                 ->url(RedirectorPostResource::getUrl('edit', ['record' => $this->record])),
             Action::make('runService')
-                ->label('Generate Variations')
+                ->label('Re-Generate Variations')
                 ->action(fn () => $this->runService())
                 ->color('success'),
         ];

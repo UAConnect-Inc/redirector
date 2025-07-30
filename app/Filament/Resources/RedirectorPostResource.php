@@ -7,6 +7,7 @@ use App\Models\RedirectorPost;
 use Filament\Forms\Components\MarkdownEditor;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables\Actions\BulkActionGroup;
@@ -30,12 +31,15 @@ class RedirectorPostResource extends Resource
     {
         return $form
             ->schema([
-                MarkdownEditor::make('text')
+                TextInput::make('name')
                     ->required(),
 
                 Select::make('redirector_campaign_id')
                     ->relationship('redirectorCampaign', 'name')
                     ->searchable()
+                    ->required(),
+
+                MarkdownEditor::make('text')
                     ->required(),
 
                 Placeholder::make('created_at')

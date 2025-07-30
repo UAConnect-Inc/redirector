@@ -13,6 +13,7 @@ class RedirectorResource extends Model
     protected $fillable = [
         'type',
         'link',
+        'name',
         'utm_source',
         'utm_medium',
         'utm_campaign',

@@ -24,6 +24,10 @@ class RedirectorResourcesRelationManager extends RelationManager
                     ])
                     ->required(),
 
+                TextInput::make('name')
+                    ->required()
+                    ->maxLength(255),
+
                 TextInput::make('link')
                     ->required()
                     ->maxLength(255)
@@ -47,6 +51,7 @@ class RedirectorResourcesRelationManager extends RelationManager
             ->recordTitleAttribute('resources')
             ->columns([
                 Tables\Columns\TextColumn::make('type'),
+                Tables\Columns\TextColumn::make('name'),
                 Tables\Columns\TextColumn::make('link'),
             ])
             ->filters([
