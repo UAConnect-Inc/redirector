@@ -1,55 +1,124 @@
+version: "3.5"
+
 services:
-    laravel.test:
-        build:
-            context: './vendor/laravel/sail/runtimes/8.4'
-            dockerfile: Dockerfile
-            args:
-                WWWGROUP: '${WWWGROUP}'
-        image: 'sail-8.4/app'
-        extra_hosts:
-            - 'host.docker.internal:host-gateway'
-        ports:
-            - '${APP_PORT:-80}:80'
-            - '${VITE_PORT:-5173}:${VITE_PORT:-5173}'
-        environment:
-            WWWUSER: '${WWWUSER}'
-            LARAVEL_SAIL: 1
-            XDEBUG_MODE: '${SAIL_XDEBUG_MODE:-off}'
-            XDEBUG_CONFIG: '${SAIL_XDEBUG_CONFIG:-client_host=host.docker.internal}'
-            IGNITION_LOCAL_SITES_PATH: '${PWD}'
-        volumes:
-            - '.:/var/www/html'
-        networks:
-            - sail
-        depends_on:
-            - mysql
-    mysql:
-        image: 'mysql/mysql-server:8.0'
-        ports:
-            - '${FORWARD_DB_PORT:-3306}:3306'
-        environment:
-            MYSQL_ROOT_PASSWORD: '${DB_PASSWORD}'
-            MYSQL_ROOT_HOST: '%'
-            MYSQL_DATABASE: '${DB_DATABASE}'
-            MYSQL_USER: '${DB_USERNAME}'
-            MYSQL_PASSWORD: '${DB_PASSWORD}'
-            MYSQL_ALLOW_EMPTY_PASSWORD: 1
-        volumes:
-            - 'sail-mysql:/var/lib/mysql'
-            - './vendor/laravel/sail/database/mysql/create-testing-database.sh:/docker-entrypoint-initdb.d/10-create-testing-database.sh'
-        networks:
-            - sail
-        healthcheck:
-            test:
-                - CMD
-                - mysqladmin
-                - ping
-                - '-p${DB_PASSWORD}'
-            retries: 3
-            timeout: 5s
+  php:
+    build:
+      context: ./docker/php
+      dockerfile: Dockerfile
+    container_name: uac_php
+    volumes:
+      - ./:/var/www/html:Z
+      - ./docker/php/www.conf:/usr/local/etc/php-fpm.d/www.conf
+    networks:
+      - project
+    depends_on:
+      - database
+      - redis
+    environment:
+      APP_ENV: production
+      CONTAINER_ROLE: app
+    restart: on-failure
+
+  database:
+    image: mysql:8.0
+    container_name: uac_database
+    volumes:
+      - ./docker/.data/mysql:/var/lib/mysql
+    ports:
+      - "${DOCKER_DB_EXTERNAL_PORT:-23306}:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: "${DOCKER_DB_ROOT_PASSWORD}"
+      MYSQL_DATABASE: "${DB_DATABASE}"
+      MYSQL_USER: "${DB_USERNAME}"
+      MYSQL_PASSWORD: "${DB_PASSWORD}"
+    networks:
+      - project
+    restart: on-failure
+
+  nginx:
+    build:
+      context: ./docker/nginx
+      dockerfile: Dockerfile
+    container_name: uac_nginx
+    ports:
+      - "${DOCKER_EXTERNAL_APP_PORT:-80}:80"
+      - "443:443"
+    volumes:
+      - ./:/var/www/html:Z
+      - ./docker/nginx/config/nginx.conf:/etc/nginx/nginx.conf
+      - ./docker/nginx/config/r.wildbus.ca.conf:/etc/nginx/conf.d/default.conf
+      - ./docker/.data/certbot/conf:/etc/letsencrypt
+      - ./docker/.data/certbot/www:/var/www/certbot
+    networks:
+      - project
+    depends_on:
+      - php
+    restart: on-failure
+    command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
+
+  certbot:
+    build:
+      context: ./docker/certbot
+      dockerfile: Dockerfile
+    container_name: uac_certbot
+    volumes:
+      - ./docker/.data/certbot/conf:/etc/letsencrypt
+      - ./docker/.data/certbot/www:/var/www/certbot
+#      - ./docker/certbot/cloudflare.ini:/cloudflare.ini:ro
+      - ./docker/certbot/entrypoint_acme.sh:/docker/certbot/entrypoint.sh:ro
+    entrypoint: /docker/certbot/entrypoint.sh
+
+  scheduler:
+    build:
+      context: ./docker/php
+      dockerfile: Dockerfile
+    container_name: uac_scheduler
+    volumes:
+      - ./:/var/www/html:Z
+      - ./docker/php/www.conf:/usr/local/etc/php-fpm.d/www.conf
+    networks:
+      - project
+    environment:
+      APP_ENV: production
+      CONTAINER_ROLE: scheduler
+    restart: on-failure:5
+    depends_on:
+      - database
+      - redis
+      - php
+
+  redis:
+    image: redis
+    container_name: uac_redis
+#    ports:
+#      - "${DOCKER_EXTERNAL_REDIS_PORT:-16379}:6379"
+    networks:
+      - project
+    volumes:
+      - ./docker/.data/redis:/data
+    restart: on-failure
+
+  queue:
+    build:
+      context: ./docker/php
+      dockerfile: Dockerfile
+    container_name: uac_queue
+    volumes:
+      - ./:/var/www/html:Z
+      - ./docker/php/www.conf:/usr/local/etc/php-fpm.d/www.conf
+      - ./docker/queue/supervisord.conf:/etc/supervisor/supervisord.conf
+      - ./docker/.data/certbot/conf:/etc/letsencrypt
+    networks:
+      - project
+    depends_on:
+      - database
+      - redis
+      - php
+    environment:
+      APP_ENV: production
+      CONTAINER_ROLE: queue
+    restart: on-failure:5
+
 networks:
-    sail:
-        driver: bridge
-volumes:
-    sail-mysql:
-        driver: local
+  project:
+    driver: "bridge"

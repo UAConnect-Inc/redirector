@@ -1,0 +1,198 @@
+#map $http_upgrade $type {
+#  default "web";
+#  websocket "ws";
+#}
+
+# app
+server {
+    listen 80;
+    server_name uaconnect.ca;
+    root         /var/www/ua-canada/public;
+
+    location / {
+        return 301 https://$host$request_uri;
+    }
+
+    location /.well-known/acme-challenge/ {
+        root /var/www/ua-canada/docker/.data/certbot/www/;
+    }
+
+#    listen 443 ssl; # managed by Certbot
+#    ssl_certificate /etc/letsencrypt/live/uacanada.uudigital.agency/fullchain.pem; # managed by Certbot
+#    ssl_certificate_key /etc/letsencrypt/live/uacanada.uudigital.agency/privkey.pem; # managed by Certbot
+#    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+#    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+
+}
+
+# subdomains
+server {
+    listen 80;
+    server_name *.uaconnect.ca;
+    root         /var/www/ua-canada/public;
+
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
+
+server {
+    listen       443 ssl http2;
+    server_name  uaconnect.ca;
+    root         /var/www/ua-canada/public;
+
+    ssl_certificate /etc/letsencrypt/live/uaconnect.ca/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/uaconnect.ca/privkey.pem;
+
+    charset utf-8;
+
+    client_max_body_size 32m;
+
+    error_page  404              /404.html;
+
+    # redirect server error pages to the static page /50x.html
+    #
+    error_page   500 502 503 504  /50x.html;
+    location = /50x.html {
+        root   /var/www/html;
+    }
+
+    # Forward requests to docker-compose exposed port
+    location / {
+        proxy_pass         http://127.0.0.1:9100/;
+        proxy_redirect     off;
+        proxy_set_header   Host $host;
+        proxy_set_header   X-Real-IP $remote_addr;
+        proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header   X-Forwarded-Host $server_name;
+        proxy_set_header   X-Forwarded-Proto $scheme;
+#	proxy_set_header   X-Remote-Addr $remote_addr;
+    }
+
+    location ~* ^.+.(jpg|jpeg|gif|css|png|js|ico|woff|ttf|otf|svg|eot|woff2|webp)$ {
+        access_log        off;
+        expires           90d;
+        add_header Cache-Control "public, no-transform";
+        root /var/www/ua-canada/public;
+    }
+
+    gzip on;
+    gzip_comp_level 5;
+    gzip_disable "msie6";
+    gzip_types text/plain text/css application/json application/javascript application/x-javascript text/xml application/xml application/xml+rss text/javascript;
+}
+
+server {
+#    listen 81;
+    listen       443 ssl http2;
+    server_name  *.uaconnect.ca;
+
+    root         /var/www/ua-canada/public;
+
+    ssl_certificate /etc/letsencrypt/live/uaconnect.ca/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/uaconnect.ca/privkey.pem;
+#    ssl on;
+#    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+#    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+
+#    include /var/www/jobs/docker/.data/certbot/conf/options-ssl-nginx.conf;
+#    ssl_dhparam /var/www/jobs/docker/.data/certbot/conf/ssl-dhparams.pem;
+
+    charset utf-8;
+    #access_log  /var/log/nginx/host.access.log  main;
+
+    client_max_body_size 32m;
+
+#    location / {
+#        proxy_set_header        Host $host;
+#        proxy_set_header        X-Real-IP $remote_addr;
+#        proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
+#        proxy_set_header        X-Forwarded-Proto $scheme;
+
+#        index  index.php index.html index.htm;
+#        try_files $uri $uri/ /index.php$is_args$args;
+#    }
+
+    error_page  404              /404.html;
+
+    # redirect server error pages to the static page /50x.html
+    #
+    error_page   500 502 503 504  /50x.html;
+    location = /50x.html {
+        root   /var/www/html;
+    }
+
+    # Forward requests to docker-compose exposed port
+    location / {
+        proxy_pass         http://127.0.0.1:9100/;
+        proxy_redirect     off;
+        proxy_set_header   Host $host;
+        proxy_set_header   X-Real-IP $remote_addr;
+        proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
+#        proxy_set_header   X-Forwarded-Host $server_name;
+	proxy_set_header   X-Forwarded-Host $host;
+	proxy_set_header   X-Forwarded-Proto $scheme;
+    }
+
+    # livewire file upload (fix?)
+#   location ^~ /livewire {
+#        try_files $uri $uri/ /index.php?$query_string;
+#   }
+
+    # pass the PHP scripts to FastCGI server listening on 127.0.0.1:9000
+    #
+#    location ~ \.php$ {
+#        fastcgi_split_path_info ^(.+\.php)(/.+)$;
+#        fastcgi_pass   php:9000;
+#        fastcgi_index  index.php;
+#        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+#        include        fastcgi_params;
+#        fastcgi_read_timeout 300;
+#    }
+
+    location ~* ^/(?!cheesegrits/).+\.(jpg|jpeg|gif|css|png|js|ico|woff|ttf|otf|svg|eot|woff2|webp)$ {
+#    location ~* ^.+.(jpg|jpeg|gif|css|png|js|ico|woff|ttf|otf|svg|eot|woff2|webp)$ {
+        access_log        off;
+        expires           90d;
+	add_header Cache-Control "public, no-transform";
+        root /var/www/ua-canada/public;
+    }
+
+    # deny access to .htaccess files, if Apache's document root
+    # concurs with nginx's one
+    #
+    location ~ /\.ht {
+        deny  all;
+    }
+
+#    location /ws {
+#        proxy_pass             http://127.0.0.1:6001;
+#        proxy_set_header Host  $host;
+#        proxy_read_timeout     60;
+#        proxy_connect_timeout  60;
+#        proxy_redirect         off;
+
+        # Allow the use of websockets
+#        proxy_http_version 1.1;
+#        proxy_set_header Upgrade $http_upgrade;
+#        proxy_set_header Connection 'upgrade';
+#        proxy_set_header Host $host;
+#        proxy_cache_bypass $http_upgrade;
+#    }
+
+    gzip on;
+    gzip_comp_level 5;
+    gzip_disable "msie6";
+    gzip_types text/plain text/css application/json application/javascript application/x-javascript text/xml application/xml application/xml+rss text/javascript;
+}
+
+#server {
+#    if ($host = uacanada.uudigital.agency) {
+#        return 301 https://$host$request_uri;
+#    } # managed by Certbot
+#
+#
+#    listen 80;
+#    server_name uacanada.uudigital.agency;
+#    return 404; # managed by Certbot
+#}
